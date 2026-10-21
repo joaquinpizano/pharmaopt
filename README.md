@@ -5,7 +5,7 @@
 
 PharmaOpt explores how publicly available pharmaceutical data can be integrated to investigate potential supply-chain vulnerabilities, identify patterns in regulatory events, and prioritize limited research resources.
 
-![PharmaOpt Dashboard Overview](docs/images/dashboard-overview.png)
+![PharmaOpt Dashboard Overview](dashboard-overview.png)
 
 ## Project Overview
 
