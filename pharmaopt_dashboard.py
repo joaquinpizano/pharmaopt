@@ -25,12 +25,7 @@ st.set_page_config(
 
 ROOT = Path(__file__).resolve().parent
 
-DATA_FILE = (
-    ROOT
-    / "outputs"
-    / "fda_outcome_definition"
-    / "pharmaopt_2025_dashboard_enriched_v01 (1).csv.gz"
-)
+DATA_FILE = ROOT / "pharmaopt_2025_dashboard_enriched_v01 (1).csv.gz"
 
 
 # ============================================================
