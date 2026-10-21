@@ -1,69 +1,43 @@
-# PharmaOpt
+# 💊 PharmaOpt
+### Pharmaceutical Supply Chain Intelligence
 
-PharmaOpt is a pharmaceutical supply-chain analytics project focused on integrating public FDA and CMS datasets to analyze drug shortages, recalls, product information, and utilization patterns.
+**An independent healthcare analytics research project combining pharmaceutical data engineering, experimental machine-learning risk rankings, and interactive decision-support tools.**
 
-The project combines Python, MySQL, SQL, and Jupyter Notebook to clean, structure, validate, and analyze pharmaceutical data across multiple sources.
+PharmaOpt explores how publicly available pharmaceutical data can be integrated to investigate potential supply-chain vulnerabilities, identify patterns in regulatory events, and prioritize limited research resources.
 
----
+![PharmaOpt Dashboard Overview](docs/images/dashboard-overview.png)
 
-## Project Objectives
+## Project Overview
 
-- Integrate FDA drug shortage, NDC, and recall datasets
-- Build a structured relational database in MySQL
-- Match NDC identifiers across multiple datasets
-- Analyze shortage and recall patterns
-- Evaluate manufacturer and product-level trends
-- Incorporate Medicare Part D utilization data
-- Develop pharmaceutical supply-risk analytics
-- Build toward predictive modeling and dashboard reporting
+Pharmaceutical supply chains involve complex relationships between drug products, National Drug Codes (NDCs), regulatory events, and product availability.
 
----
+PharmaOpt integrates pharmaceutical datasets into a unified analytical workflow to explore how data-driven tools could support supply-chain research and decision-making.
 
-## Current Results
+**Core capabilities:**
 
-| Metric | Result |
-|---|---:|
-| Drug product records | 138,217 |
-| Drug package records | 256,383 |
-| Shortage events | 1,601 |
-| Recall events | 17,975 |
-| Recall-package relationships | 25,577 |
-| Shortage NDC match rate | 88.7% |
-| Recall-package match rate | 76.92% |
+- **Data Integration:** Standardizes and links pharmaceutical datasets using National Drug Codes (NDCs).
+- **Risk Ranking:** Develops experimental models to prioritize pharmaceutical packages for further investigation.
+- **Resource Allocation:** Simulates how hypothetical review budgets could be allocated across ranked products.
+- **Model Evaluation:** Evaluates historical ranking performance against exploratory FDA event labels.
+- **Interactive Analytics:** Provides an interactive Streamlit dashboard for exploring products, comparing models, and analyzing allocation scenarios.
 
----
+## Interactive Dashboard
 
-## Technologies Used
+PharmaOpt includes a custom Streamlit dashboard designed to make complex pharmaceutical data easier to explore and interpret.
 
-- Python
-- Pandas
-- Jupyter Notebook
-- MySQL
-- SQL
-- Excel
-- FDA public datasets
-- CMS Medicare Part D data
+### Dashboard Features
 
----
+| Section | Description |
+|---|---|
+| **Overview** | Displays package coverage, ranking priorities, and hypothetical resource allocation |
+| **Drug Explorer** | Allows users to explore pharmaceutical products and their associated ranking information |
+| **Model Evaluation** | Compares the performance of experimental risk-ranking models |
+| **Methodology** | Explains data sources, research assumptions, and model limitations |
 
-## Repository Structure
+The dashboard currently analyzes **221,667 pharmaceutical package records** from the 2025 evaluation dataset.
 
-```text
-pharmaopt/
-│
-├── notebooks/
-│   ├── 01_fda_shortage_audit.ipynb
-│   ├── 02_fda_ndc_audit.ipynb
-│   ├── 03_fda_recall_audit.ipynb
-│   ├── 04_fda_data_integration.ipynb
-│   ├── 05_mysql_data_load.ipynb
-│   ├── 06_pharmaopt_analytics.ipynb
-│   └── 07_cms_partd_utilization.ipynb
-│
-├── sql/
-│   ├── pharmaopt_schema.sql
-│   ├── pharmaopt_analysis_queries.sql
-│   ├── pharmaopt_data_validation.sql
-│   └── pharmaopt_business_analysis.sql
-│
-└── README.md
+Users can compare experimental models **v0.4 and v0.5**, adjust hypothetical review budgets, modify per-package review costs, and explore different prioritization scenarios.
+
+## Data Engineering and Integration
+
+PharmaOpt uses publicly available pharmaceutical data, including FDA drug product, shortage, and enforcement information, alongside additional research datasets
