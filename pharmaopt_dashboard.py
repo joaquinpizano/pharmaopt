@@ -29,7 +29,7 @@ DATA_FILE = (
     ROOT
     / "outputs"
     / "fda_outcome_definition"
-    / "pharmaopt_2025_dashboard_enriched_v01.csv"
+    / "pharmaopt_2025_dashboard_enriched_v01 (1).csv.gz"
 )
 
 
