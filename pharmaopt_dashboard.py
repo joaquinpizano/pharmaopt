@@ -25,7 +25,10 @@ st.set_page_config(
 
 ROOT = Path(__file__).resolve().parent
 
-DATA_FILE = ROOT / "pharmaopt_2025_dashboard_enriched_v01 (1).csv.gz"
+DATA_FILE = (
+    ROOT
+    / "pharmaopt_2025_dashboard_corrected_v01.csv.gz"
+)
 
 
 # ============================================================
@@ -408,9 +411,9 @@ except (FileNotFoundError, ValueError) as error:
     )
 
     st.info(
-        "Confirm that the enriched dashboard CSV "
-        "exists in outputs/fda_outcome_definition."
-    )
+    "Confirm that the corrected dashboard CSV "
+    "exists in outputs/corrected_model_comparison_v01."
+)
 
     st.stop()
 
