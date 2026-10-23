@@ -1,241 +1,154 @@
+# PharmaOpt 💊
 
-# PharmaOpt
+### Making pharmaceutical supply-chain data easier to explore and understand
 
-**Pharmaceutical Supply Chain Intelligence | Data Engineering · Machine Learning · NLP · Optimization**
+**An independent data analytics project by Joaquin Pizano | University of South Florida**
 
-[**Launch Live Dashboard**](https://pharmaopt.streamlit.app/) | [**GitHub Repository**](https://github.com/joaquinpizano/pharmaopt)
+[**Explore the Live Dashboard**](https://pharmaopt.streamlit.app/) · [**View the Code**](https://github.com/joaquinpizano/pharmaopt)
 
-![PharmaOpt Dashboard](dashboard-overview.png)
+![PharmaOpt dashboard preview](dashboard-overview.png)
 
-> **Project Status: Active Development**
->
-> PharmaOpt is an independent pharmaceutical supply-chain analytics research project. Its machine learning models produce experimental risk rankings, not validated shortage predictions or calibrated probabilities.
+## The problem
 
-## Project Overview
+Pharmaceutical supply chains involve thousands of products and complicated information from different sources. When a team has limited time or resources, **which products should it look at first?**
 
-PharmaOpt is an independent analytics project developed by Joaquin Pizano, an Artificial Intelligence & Business Analytics student at the University of South Florida.
+PharmaOpt explores how data can help organize that question. It combines public information from the U.S. Food and Drug Administration (FDA) and Medicare to rank pharmaceutical packages for further investigation, compare different analytical approaches, and demonstrate how a fixed review budget could be used.
 
-The project investigates how publicly available pharmaceutical data can be integrated and analyzed to identify potential supply-risk signals and support transparent resource-allocation research.
+**This is a research and portfolio project—not a system that confirms current drug shortages or recommends medical or purchasing decisions.**
 
-It combines data engineering, relational databases, machine learning, natural language processing, and mathematical optimization into a single research workflow.
+## What can you do with PharmaOpt?
 
-The project also includes a publicly deployed Streamlit dashboard that allows users to explore the 2025 pharmaceutical package dataset and compare experimental model results.
+[**Try the interactive dashboard →**](https://pharmaopt.streamlit.app/)
 
-**Live Application:** https://pharmaopt.streamlit.app/
+The dashboard has four sections:
 
-## Interactive Dashboard
-
-The PharmaOpt dashboard contains four sections:
-
-**Overview**
-- Summary statistics and key indicators
-- Pharmaceutical package-level data
-- High-level risk-ranking results
-
-**Drug Explorer**
-- Interactive drug and package exploration
-- Searchable and filterable records
-- Experimental model scores
-
-**Model Evaluation**
-- Comparison of model versions v0.4 and v0.5
-- Precision-recall evaluation
-- Top-ranked package analysis
-
-**Methodology**
-- Data sources and definitions
-- Modeling assumptions
-- Research limitations and interpretation guidance
-
-The deployed 2025 dataset contains **221,667 pharmaceutical package records**.
-
-## Data Sources
-
-PharmaOpt integrates publicly available datasets from:
-
-- FDA National Drug Code (NDC) Directory
-- FDA Drug Shortages
-- FDA Drug Enforcement / Recall Reports
-- CMS Medicare Part D Utilization
-
-CMS utilization is used as a partial demand-pressure proxy and does not represent total U.S. pharmaceutical demand.
-
-## Data Integration Results
-
-| Research Component | Result |
+| Section | What you'll find |
 |---|---|
-| FDA Product Records | 138,217 |
-| FDA Package NDCs | 256,383 |
-| FDA Shortage Records | 1,601 |
-| Unique Shortage NDCs | 1,570 |
-| Successfully Matched Shortage NDCs | 1,393 |
-| NDC Match Rate | 88.73% |
-| FDA Recall Events | 17,975 |
-| Historical Package-Year Observations | 762,907 |
-| 2025 Dashboard Package Records | 221,667 |
+| **Overview** | See how many packages were analyzed, which packages rank highest for follow-up, and how a sample budget changes the number selected. |
+| **Drug Explorer** | Search the selected packages by drug name, brand, company listed with the FDA, or National Drug Code (NDC). |
+| **Model Evaluation** | Compare two approaches and see how many packages associated with recorded FDA events appeared near the top of each ranking. |
+| **Methodology** | Learn where the data came from, how the analysis works, and what the results cannot tell us. |
 
-The historical modeling dataset spans 2022–2025.
+**Suggested starting point:** Open **Overview** and adjust the review budget in the sidebar. Then visit **Model Evaluation** and select **All FDA-linked events** to see the main historical comparison.
 
-Unmatched NDC identifiers were preserved rather than forcing potentially inaccurate matches.
+## Project at a glance
 
-## Machine Learning Research
+| Measure | Result |
+|---|---:|
+| Historical package-year records analyzed (2022–2025) | **762,907** |
+| Pharmaceutical package records in the 2025 dashboard | **221,667** |
+| Models compared | **2** |
+| FDA-linked event flags in the 2025 comparison | **96** |
+| Public interactive dashboard | **Live** |
 
-PharmaOpt investigates rare-event pharmaceutical supply-risk ranking using historical FDA and CMS data.
+A *package-year* means a pharmaceutical package represented in a particular year. It is not the same as a unique drug or a patient.
 
-The research compares two experimental models:
+## What did I find?
 
-### Model v0.4
+I compared two experimental models that rank pharmaceutical packages using historical data:
 
-Uses FDA-linked historical signals and CMS utilization features to rank pharmaceutical packages.
+- **v0.4 — the simpler model:** Uses historical FDA-related signals and Medicare utilization information.
+- **v0.5 — the expanded model:** Adds information extracted from the language used in FDA recall reports.
 
-### Model v0.5
+In the **2025 retrospective development evaluation**, the simpler model performed better on the main FDA-linked event measure.
 
-Extends the previous model with additional features derived from recall-language analysis.
-
-### Model Evaluation Results
-
-| Metric | v0.4 | v0.5 |
+| 2025 comparison | v0.4 | v0.5 |
 |---|---:|---:|
-| 2025 PR-AUC | .003897 | 0.002858 |
-| Positive Flags Captured in Top 500 | 10 of 96 | 7 of 96 |
+| FDA-linked events among the top 500 ranked packages | **10 of 96** | **7 of 96** |
+| Precision–recall area under the curve (PR-AUC) | 0.003897 | 0.002858 |
 
-**Key Finding:** Adding the tested recall-language features did not improve ranking performance.
+**What that means:** If a team could investigate only 500 of the 221,667 listed packages, the v0.4 ranking placed more packages with the recorded FDA event label in that review group. This is a historical research result, **not evidence that the model predicts real-world shortages reliably**.
 
-This negative result is retained as part of the research process.
+The additional recall-language features did not improve the main comparison in this experiment. The models also used different training solvers, so the result cannot be attributed to the added features alone.
 
-The 2025 evaluation cohort was examined during model development and therefore is not considered an independent final test.
+**Important context:** The 96 FDA-linked flags include **84 discontinuation-notice candidates** and **12 non-discontinuation-event candidates**. They are **not 96 independently verified active shortages**. The 2025 dataset was reviewed repeatedly during development, so it is **not an untouched final test**.
 
-The 96 FDA-linked positive flags in the 2025 dashboard include 84 discontinuation-notice candidates and 12 non-discontinuation-event candidates. They are not 96 independently verified active drug shortages.
+## How I built it
 
-## Natural Language Processing
+This project brings together several areas of analytics:
 
-PharmaOpt includes recall-language analysis designed to identify and categorize potential pharmaceutical quality and supply-risk signals.
+1. **Collect and organize data:** Combined FDA drug product, package, shortage, and recall records with available Medicare Part D information.
+2. **Check data quality:** Examined identifier matches, dates, missing information, and historical data availability. Unmatched product identifiers were not automatically forced into matches.
+3. **Build and compare models:** Trained experimental ranking models on 2022–2024 records and compared their rankings against 2025 FDA-linked event indicators.
+4. **Analyze written recall reports:** Used natural language processing (NLP) to categorize recall descriptions and explore whether that information improved rankings.
+5. **Explore resource decisions:** Built hypothetical allocation studies to show how limited resources could be distributed under stated assumptions.
+6. **Build a dashboard:** Created and deployed an interactive application using Streamlit and Plotly.
 
-Research components include:
+### Data sources
 
-- FDA recall-reason text analysis
-- Rule-based recall categorization
-- Natural language feature engineering
-- Weakly supervised NLP experiments
-- Evaluation of additional recall-derived model features
+- **FDA National Drug Code Directory:** Pharmaceutical product, package, and listing information.
+- **FDA Drug Shortage records:** Historical FDA-linked event information used in research labels and features.
+- **FDA Drug Enforcement / Recall reports:** Recall histories and text descriptions.
+- **CMS Medicare Part D:** Historical prescription utilization and spending information for matched records.
 
-The rule-based recall taxonomy categorized **97.61% of the 17,975 recall records**.
+*Medicare Part D data captures only part of pharmaceutical use and is not a measure of total U.S. drug demand. Historical source availability is not fully verified.*
 
-These classifications describe recall language and should not be interpreted as independently validated shortage-risk outcomes.
+### Additional research
 
-## Resource Allocation Optimization
+**Understanding recall descriptions:** A rule-based recall-language classification system categorized **97.61% of 17,975 recall records** in an earlier research dataset. This measures categorization coverage, not verified shortage prediction.
 
-PharmaOpt also explores mathematical optimization as a potential pharmaceutical operations decision-support tool.
+**Resource allocation case study:** A separate simulated study of lisdexamfetamine allocation used OR-Tools to compare strategies under specified constraints. One balanced approach reduced the study's **modeled demand-weighted unmet-demand objective by 14.87%** relative to proportional allocation. This is a simulation result—not an observed improvement in drug availability or patient outcomes.
 
-Using OR-Tools, the project compares hypothetical allocation strategies under operational constraints.
+## Tools and technical skills
 
-In a lisdexamfetamine case study, a balanced allocation policy produced a **14.87% reduction in the modeled demand-weighted unmet-demand objective** relative to proportional allocation.
+| Area | Tools and methods |
+|---|---|
+| Data preparation and analysis | Python, pandas, SQL, MySQL, Jupyter |
+| Machine learning | scikit-learn, rare-event ranking, model evaluation |
+| Text analysis | NLP, rule-based classification, TF-IDF |
+| Optimization | Google OR-Tools, constrained scenario analysis |
+| Visualization and publishing | Streamlit, Plotly, GitHub |
 
-This result comes from a simulation, not an observed improvement in real-world pharmaceutical availability.
-
-## Technology Stack
-
-**Programming and Analysis**
-- Python
-- pandas
-- scikit-learn
-- SQL
-- MySQL
-- Jupyter Notebook
-
-**Machine Learning and Optimization**
-- Rare-event classification and ranking
-- NLP and TF-IDF
-- OR-Tools
-- Precision-recall evaluation
-
-**Visualization and Deployment**
-- Streamlit
-- Plotly
-- GitHub
-- Tableau
-- Excel
-
-## Repository Structure
+## Project files
 
 ```text
 pharmaopt/
 ├── README.md
 ├── pharmaopt_dashboard.py
+├── pharmaopt_2025_dashboard_corrected_v01.csv.gz
+├── pharmaopt_2025_dashboard_enriched_v01 (1).csv.gz  # older dataset
 ├── requirements.txt
 ├── dashboard-overview.png
-├── pharmaopt_2025_dashboard_enriched_v01 (1).csv.gz
 ├── docs/
 ├── notebooks/
 └── sql/
 ```
 
-The compressed dataset is stored in the repository root and is used by the deployed Streamlit dashboard.
+The published app reads **`pharmaopt_2025_dashboard_corrected_v01.csv.gz`**. The older compressed file is retained in the repository but is not the active dashboard source. The public repository contains a selected subset of the research workflow, not every local dataset or experiment.
 
-Its filename and location must remain consistent with the `DATA_FILE` path in `pharmaopt_dashboard.py`.
+### Run the published dashboard locally
 
-## Research Limitations
+With Python installed, from the cloned repository:
 
-PharmaOpt is an ongoing research prototype with several important limitations.
+```bash
+python -m pip install -r requirements.txt
+python -m streamlit run pharmaopt_dashboard.py
+```
 
-**Historical Data Quality**
+The included compressed dashboard dataset supports the public-facing dashboard. Fully rebuilding the research models requires additional source data and notebook workflows and is **not** presented here as a one-command reproduction.
 
-Later FDA data snapshots may not accurately reconstruct historical pharmaceutical shortage conditions.
+## Important limitations
 
-**Outcome Definitions**
+PharmaOpt is an **educational research prototype**. In particular:
 
-Discontinuation notices, FDA-listed shortage records, and independently verified active shortages are not interchangeable.
+- **FDA events are not confirmed active shortages.** Recorded shortage-related events and discontinuation notices may have different meanings and may change retrospectively.
+- **The model scores are rankings, not probabilities.** A high score does not mean a product has a known percentage chance of becoming unavailable.
+- **2025 is a development evaluation.** It was examined during model development and does not provide independent prospective validation.
+- **Event labels are rare.** Small numbers of recorded events make model comparisons uncertain.
+- **Data timing and matching have limitations.** Some historical publication timing, product matching, and missing fields require further validation.
+- **Review budgets and allocation results are hypothetical.** No clinical benefit, shortage prevention, purchasing improvement, or financial savings have been demonstrated.
 
-**Rare-Event Modeling**
+**Do not use PharmaOpt for clinical care, live shortage prediction, automated purchasing, or actual inventory allocation.**
 
-Historical positive outcomes are extremely uncommon, making model evaluation challenging.
+## About the developer
 
-**Model Validation**
+**Joaquin Pizano**  
+University of South Florida · B.S. Artificial Intelligence & Business Analytics
 
-The 2025 cohort has been repeatedly examined during development and is not an untouched final evaluation dataset.
+I built PharmaOpt independently to practice solving a real-world business problem through data engineering, research, machine learning, and interactive analytics. My goal is to make complicated information easier for people to explore and use thoughtfully.
 
-**Risk Score Interpretation**
-
-Model outputs represent experimental rankings rather than calibrated probabilities.
-
-**Optimization Assumptions**
-
-Allocation simulations rely on modeled supply, utilization proxies, and specified constraints rather than observed inventory and demand.
-
-PharmaOpt is intended for educational research and portfolio demonstration, not medical or operational decision-making.
-
-## Current Development Status
-
-- [x] Integrate FDA pharmaceutical datasets
-- [x] Develop relational MySQL data structures
-- [x] Evaluate NDC matching and data quality
-- [x] Build historical package-year modeling dataset
-- [x] Develop experimental model v0.4
-- [x] Evaluate recall-language model v0.5
-- [x] Explore NLP-based recall analysis
-- [x] Build constrained allocation simulations
-- [x] Develop interactive Streamlit dashboard
-- [x] Deploy dashboard publicly
-- [ ] Further validate historical shortage labels
-- [ ] Establish an independent final evaluation cohort
-- [ ] Improve model evaluation and reproducibility
-- [ ] Expand pharmaceutical operations research
-
-## About the Developer
-
-**Joaquin Pizano**
-
-University of South Florida  
-B.S. Artificial Intelligence & Business Analytics
-
-PharmaOpt is an independent research and portfolio project developed to explore applications of analytics, machine learning, and optimization within pharmaceutical supply chains.
-
-**Links**
-
-- [Live PharmaOpt Dashboard](https://pharmaopt.streamlit.app/)
-- [GitHub](https://github.com/joaquinpizano)
-- [LinkedIn](https://www.linkedin.com/in/joaquinpizano/)
-- Email: joaquinpizano@usf.edu
+[Live Dashboard](https://pharmaopt.streamlit.app/) · [GitHub Profile](https://github.com/joaquinpizano) · [LinkedIn](https://www.linkedin.com/in/joaquinpizano/)  
+Contact: joaquinpizano@usf.edu
 
 ---
 
