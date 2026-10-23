@@ -96,8 +96,8 @@ Extends the previous model with additional features derived from recall-language
 
 | Metric | v0.4 | v0.5 |
 |---|---:|---:|
-| 2025 PR-AUC | 0.003133 | 0.002396 |
-| Positive Flags Captured in Top 500 | 10 of 96 | 6 of 96 |
+| 2025 PR-AUC | .003897 | 0.002858 |
+| Positive Flags Captured in Top 500 | 10 of 96 | 7 of 96 |
 
 **Key Finding:** Adding the tested recall-language features did not improve ranking performance.
 
