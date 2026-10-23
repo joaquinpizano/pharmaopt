@@ -411,9 +411,10 @@ except (FileNotFoundError, ValueError) as error:
     )
 
     st.info(
-    "Confirm that the corrected dashboard CSV "
-    "exists in outputs/corrected_model_comparison_v01."
-)
+        "The dashboard needs the compressed data file "
+        "pharmaopt_2025_dashboard_corrected_v01.csv.gz "
+        "in the same folder as this Python script."
+    )
 
     st.stop()
 
@@ -450,10 +451,11 @@ st.sidebar.caption(
 
 st.sidebar.divider()
 
-st.sidebar.subheader("Model Configuration")
+st.sidebar.subheader("Choose a ranking model")
+st.sidebar.caption("v0.4 is the recommended comparison model; v0.5 is an experimental alternative.")
 
 model = st.sidebar.selectbox(
-    "Risk-ranking model",
+    "Model used to rank packages",
     ["v0.4", "v0.5"],
 )
 
@@ -464,10 +466,14 @@ score_col = {
 
 st.sidebar.divider()
 
-st.sidebar.subheader("Allocation Controls")
-
+st.sidebar.subheader("Plan a sample review")
+st.sidebar.caption(
+    "Imagine a team deciding which products to examine first. "
+    "Change the budget, cost per review, or team capacity to "
+    "see how many packages could be selected."
+)
 budget = st.sidebar.slider(
-    "Hypothetical review budget ($)",
+    "Available review budget ($) — example only",
     min_value=10000,
     max_value=2000000,
     value=500000,
@@ -475,14 +481,14 @@ budget = st.sidebar.slider(
 )
 
 review_cost = st.sidebar.number_input(
-    "Assumed cost per package review ($)",
+    "Estimated cost to review one package ($)",
     min_value=1,
     value=1000,
     step=100,
 )
 
 max_capacity = st.sidebar.slider(
-    "Maximum packages to review",
+    "Team capacity (number of packages)",
     min_value=100,
     max_value=5000,
     value=500,
@@ -494,7 +500,12 @@ capacity = min(
     max_capacity,
     len(data),
 )
-
+st.sidebar.info(
+    f"This example selects **{capacity:,} packages** for review. "
+    f"At ${review_cost:,.0f} each, the assumed total cost is "
+    f"**${capacity * review_cost:,.0f}**. "
+    "No real spending or purchases occur."
+)
 ranked = rank_packages(
     data,
     score_col,
@@ -540,9 +551,9 @@ st.markdown(
         Pharmaceutical Supply Chain Intelligence
     </div>
     <div class="po-hero-subtitle">
-        Transforming complex pharmaceutical data into
-        clearer research insights, risk rankings, and
-        resource-allocation scenarios.
+        When a team cannot investigate every drug product, where should it start?
+        Explore a research-based ranking and see how limited review capacity
+        changes which packages are selected.
     </div>
     <div class="po-status">
         ● RESEARCH PROTOTYPE · VERSION 1.0
@@ -553,17 +564,27 @@ st.markdown(
 )
 
 st.caption(
-    "2025 retrospective analysis | "
-    "FDA + CMS integrated data | "
-    "Experimental machine-learning rankings"
+    "2025 historical study  •  FDA and Medicare (CMS) records  •  Demonstration, not a live monitoring service"
 )
 
+st.markdown("### Start here")
+st.write(
+    "PharmaOpt explores a practical question: if a team can review only a "
+    "small number of pharmaceutical packages, which ones might deserve "
+    "a closer look first? It combines historical public data and two "
+    "experimental ranking models to organize that review."
+)
+st.write(
+    "**Try it:** Use the budget controls on the left, browse the selected "
+    "products in **Drug Explorer**, and compare the two models in "
+    "**Model Evaluation**. Nothing on this page places an order or spends money."
+)
 st.info(
-    "Research use only: FDA event labels are not "
-    "verified active-shortage outcomes. Model scores "
-    "are ranking indicators, not calibrated probabilities."
+    "**Important:** A high model score means higher position on an "
+    "experimental review list—not a confirmed shortage or a percentage "
+    "chance of shortage. Historical FDA-linked events are not the same "
+    "as verified active drug shortages."
 )
-
 
 # ============================================================
 # NAVIGATION
@@ -585,27 +606,32 @@ tab_overview, tab_drugs, tab_models, tab_method = st.tabs(
 
 with tab_overview:
 
-    st.subheader("Intelligence Overview")
+    st.subheader("Your review plan at a glance")
+
+    st.write(
+        "These numbers show the size of the historical dataset and what "
+        "your example budget would cover. All costs are assumptions, not actual spending."
+    )
 
     a, b, c, d = st.columns(4)
 
     a.metric(
-        "Packages analyzed",
+        "Packages in the 2025 study",
         f"{len(data):,}",
     )
 
     b.metric(
-        "Packages prioritized",
+        "Packages selected for review",
         f"{len(selected):,}",
     )
 
     c.metric(
-        "Hypothetical spending",
+        "Example review cost",
         f"${len(selected) * review_cost:,.0f}",
     )
 
     d.metric(
-        "Unallocated budget",
+        "Budget remaining",
         f"${budget - len(selected) * review_cost:,.0f}",
     )
 
@@ -617,7 +643,7 @@ with tab_overview:
 
     st.divider()
 
-    st.subheader("How PharmaOpt Works")
+    st.subheader("How PharmaOpt works in three steps")
 
     c1, c2, c3 = st.columns(3)
 
@@ -668,7 +694,12 @@ with tab_overview:
 
     st.divider()
 
-    st.subheader("Highest-Priority Packages")
+    st.subheader("Which packages would be reviewed first?")
+    st.caption(
+        "This table shows the 20 highest-ranked packages in your selection. "
+        "Position 1 means first to review, not most likely to be in shortage. "
+        "A model score is a ranking indicator, not a probability."
+    )
 
     overview_columns = [
         "package_ndc",
@@ -696,7 +727,12 @@ with tab_overview:
 
     st.divider()
 
-    st.subheader("Allocation Distribution")
+    st.subheader("How the selected packages are grouped")
+    st.caption(
+        "Tier 1 = ranks 1–100; Tier 2 = ranks 101–250; "
+        "Tier 3 = remaining selected packages. These are organizing buckets, "
+        "not clinically validated risk categories."
+    )
 
     tier_summary = (
         selected["priority_tier"]
@@ -747,15 +783,19 @@ with tab_overview:
 
 with tab_drugs:
 
-    st.subheader("Pharmaceutical Product Explorer")
-
+    st.subheader("Explore the products selected for review")
     st.write(
-        "Search and explore the packages selected "
-        "for hypothetical review."
+        "Search within the packages your current budget and model selected. "
+        "You can look up a drug name, brand, company labeler, or NDC "
+        "(the FDA identifier for a drug package)."
+    )
+    st.caption(
+        "Can't find a product? The search covers only selected packages. "
+        "Increase your review capacity to include more products."
     )
 
     search = st.text_input(
-        "Search selected products",
+        "Find a selected package",
         placeholder="Search by drug, brand, labeler, or NDC",
     )
 
@@ -839,7 +879,7 @@ with tab_drugs:
 
     st.divider()
 
-    st.subheader("Drug Group Concentration")
+    st.subheader("Which drug groups appear most often?")
 
     st.caption(
         "Groups are based on generic names and dosage "
@@ -924,7 +964,11 @@ with tab_drugs:
 
     st.divider()
 
-    st.subheader("FDA Labeler Representation")
+    st.subheader("Which FDA-listed companies appear most often?")
+    st.caption(
+        "This chart counts selected packages by their FDA labeler. "
+        "A labeler is not necessarily the company that physically made the drug."
+    )
 
     known_labelers = selected.loc[
         selected["labeler_name"]
@@ -986,70 +1030,73 @@ with tab_drugs:
 
 with tab_models:
 
-    st.subheader("Historical Model Evaluation")
-
+    st.subheader("Which ranking model performed better?")
     st.write(
-        "Compare the experimental models based on "
-        "their ability to rank packages associated "
-        "with recorded FDA events."
+        "A ranking model orders packages for closer review. We compare two "
+        "versions by looking backward at recorded FDA-linked events in 2025. "
+        "The question is: how many of those event-linked packages appear near "
+        "the top of each model's list?"
+    )
+    st.write(
+        "**v0.4 — simpler model:** Uses the earlier feature set and performs "
+        "better on the main historical comparison. "
+        "**v0.5 — expanded model:** Also uses more recall-text information; "
+        "the tested version did not outperform v0.4 on the main outcome."
+    )
+    st.caption(
+        "These models also used different training solvers in the corrected "
+        "comparison, so the result cannot be attributed solely to the added text features."
     )
 
     target_options = {
-        "Non-discontinuation FDA events":
+        "All FDA-linked events (main comparison)": "fda_event_any",
+        "Non-discontinuation event candidates (smaller group)":
             "non_discontinuation_event_candidate",
-        "All FDA events":
-            "fda_event_any",
-        "Discontinuation notices":
-            "discontinuation_notice_candidate",
+        "Discontinuation notices": "discontinuation_notice_candidate",
     }
-
     target_name = st.selectbox(
-        "Historical outcome definition",
+        "Which type of historical FDA record should we compare?",
         list(target_options),
+        help=(
+            "The main comparison includes all FDA-linked event flags. "
+            "The smaller non-discontinuation group has just 12 candidates in 2025. "
+            "Neither means a verified active shortage."
+        ),
     )
-
     target = target_options[target_name]
-
     positives = int(data[target].sum())
 
-    st.metric(
-        "Recorded positive package-years",
-        f"{positives:,}",
-    )
-
     evaluation = []
-
     for version, column in [
         ("v0.4", "risk_score_v04"),
         ("v0.5", "risk_score_v05"),
     ]:
-
-        ordered = rank_packages(
-            data,
-            column,
-        )
-
+        ordered = rank_packages(data, column)
         cumulative = ordered[target].cumsum()
-
         for n in [100, 250, 500, 1000, 2500, 5000]:
-
-            captured = int(
-                cumulative.iloc[n - 1]
-            )
-
-            evaluation.append(
-                {
-                    "Model": version,
-                    "Review Capacity": n,
-                    "Events Captured": captured,
-                    "Recall": (
-                        captured / positives
-                        if positives else 0
-                    ),
-                }
-            )
+            captured = int(cumulative.iloc[n - 1])
+            evaluation.append({
+                "Model": version,
+                "Review Capacity": n,
+                "Events Captured": captured,
+                "Recall": captured / positives if positives else 0,
+            })
 
     evaluation_df = pd.DataFrame(evaluation)
+    top500 = evaluation_df.loc[evaluation_df["Review Capacity"].eq(500)]
+    cap04 = int(top500.loc[top500["Model"].eq("v0.4"), "Events Captured"].iloc[0])
+    cap05 = int(top500.loc[top500["Model"].eq("v0.5"), "Events Captured"].iloc[0])
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Packages with this recorded outcome", f"{positives:,}")
+    m2.metric("v0.4: found in first 500", f"{cap04} of {positives}")
+    m3.metric("v0.5: found in first 500", f"{cap05} of {positives}")
+
+    st.write(
+        "**Example:** If a team could examine only 500 packages, the numbers "
+        "above show how many packages with the selected historical record "
+        "each model would have included. This does **not** measure prevented shortages."
+    )
 
     fig_eval = px.line(
         evaluation_df,
@@ -1057,38 +1104,40 @@ with tab_models:
         y="Events Captured",
         color="Model",
         markers=True,
-        title=f"Historical Event Capture — {target_name}",
-        color_discrete_map={
-            "v0.4": "#087F78",
-            "v0.5": "#2D5B9A",
-        },
+        title=f"Historical event records found at different review limits — {target_name}",
+        color_discrete_map={"v0.4": "#087F78", "v0.5": "#2D5B9A"},
     )
-
     fig_eval.update_layout(
         plot_bgcolor="white",
         paper_bgcolor="white",
         font=dict(color="#15263B"),
         margin=dict(l=20, r=20, t=60, b=20),
     )
-
-    st.plotly_chart(
-        fig_eval,
-        use_container_width=True,
+    st.plotly_chart(fig_eval, use_container_width=True)
+    st.caption(
+        "How to read the chart: the horizontal axis is the number of packages "
+        "a team could review. The vertical axis is how many packages with "
+        "the selected historical FDA record appear in those top-ranked packages. "
+        "At the same review limit, a higher line means more historical events found."
     )
 
-    st.dataframe(
-        evaluation_df,
-        use_container_width=True,
-        hide_index=True,
-    )
+    with st.expander("Show the detailed comparison table"):
+        detail = evaluation_df.rename(columns={
+            "Review Capacity": "Packages reviewed",
+            "Events Captured": "Historical events found",
+            "Recall": "Share of recorded events found",
+        })
+        st.dataframe(detail, use_container_width=True, hide_index=True)
+        st.caption(
+            "'Share of recorded events found' means the fraction of flagged "
+            "2025 packages included in the selected top-N list—not a model probability."
+        )
 
     st.warning(
-        "These results are exploratory. "
-        "The refined 2025 outcome contains only "
-        "12 non-discontinuation event candidates. "
-        "Historical FDA event labels are not "
-        "verified active shortages, and these "
-        "results are not independent prospective validation."
+        "**Research limitations:** Only 12 non-discontinuation event candidates "
+        "appear in the 2025 data. FDA-linked event flags do not establish "
+        "active shortages. The 2025 data was examined repeatedly during "
+        "development, so this is not an independent or prospective test."
     )
 
 
@@ -1098,7 +1147,12 @@ with tab_models:
 
 with tab_method:
 
-    st.subheader("About PharmaOpt")
+    st.subheader("How this research was built")
+    st.write(
+        "**In one sentence:** PharmaOpt combines historical public drug data "
+        "with experimental scoring methods to help explore which packages "
+        "might be reviewed first under limited resources."
+    )
 
     st.write(
         "PharmaOpt is a research and decision-support "
@@ -1109,7 +1163,8 @@ with tab_method:
 
     st.divider()
 
-    st.markdown("#### Data Sources")
+    st.markdown("#### Where the information comes from")
+    st.caption("FDA = U.S. Food and Drug Administration. CMS = Centers for Medicare & Medicaid Services.")
 
     st.write(
         "**FDA National Drug Code Directory:** "
@@ -1138,7 +1193,7 @@ with tab_method:
 
     st.divider()
 
-    st.markdown("#### Modeling Approach")
+    st.markdown("#### How the rankings were evaluated")
 
     st.write(
         "The models were trained on historical "
@@ -1154,7 +1209,7 @@ with tab_method:
 
     st.divider()
 
-    st.markdown("#### Allocation Approach")
+    st.markdown("#### How the sample budget works")
 
     st.write(
         "The allocation simulation assumes an equal "
@@ -1165,7 +1220,7 @@ with tab_method:
 
     st.divider()
 
-    st.markdown("#### Important Limitations")
+    st.markdown("#### What this study cannot tell us")
 
     st.markdown(
         """
@@ -1184,13 +1239,25 @@ with tab_method:
 
     st.divider()
 
-    st.markdown("#### Intended Use")
+    st.markdown("#### What PharmaOpt is intended for")
 
     st.write(
         "Educational research, pharmaceutical data "
         "exploration, retrospective analysis, and "
         "hypothetical resource-allocation simulations."
     )
+
+    with st.expander("Plain-English glossary"):
+        st.markdown(
+            "**Package:** A specific FDA-listed drug package, identified by an NDC.\n\n"
+            "**Ranking model:** A method that puts packages in an order for review.\n\n"
+            "**Model score:** A number used to sort packages, not a shortage probability.\n\n"
+            "**FDA-linked event:** A record associated with an FDA event; "
+            "it does not prove the package was in an active shortage.\n\n"
+            "**Retrospective:** Looking back at past records, rather than "
+            "monitoring events as they happen.\n\n"
+            "**Review capacity:** The maximum number of packages a team can examine."
+        )
 
     st.error(
         "Not validated for clinical decisions, "
