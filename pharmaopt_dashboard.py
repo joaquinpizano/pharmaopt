@@ -11,14 +11,20 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from pharmaopt_metrics import (
+    DEFAULT_REVIEW_BUDGETS,
+    compare_rankings,
+    rank_packages as deterministic_rank_packages,
+)
+
 
 # ============================================================
 # PAGE CONFIGURATION
 # ============================================================
 
 st.set_page_config(
-    page_title="PharmaOpt | Supply Chain Intelligence",
-    page_icon="💊",
+    page_title="PharmaOpt | Supply-chain intelligence",
+    page_icon=":material/medication:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -29,6 +35,14 @@ DATA_FILE = (
     ROOT
     / "pharmaopt_2025_dashboard_corrected_v01.csv.gz"
 )
+
+
+def file_signature(path):
+    """Return source metadata so cached reads refresh after file changes."""
+    if not path.is_file():
+        return (str(path), None, None)
+    stat = path.stat()
+    return (str(path), stat.st_mtime_ns, stat.st_size)
 
 
 # ============================================================
@@ -305,8 +319,8 @@ h3 {
 # LOAD DATA
 # ============================================================
 
-@st.cache_data
-def load_data():
+@st.cache_data(show_spinner=False)
+def load_data(source_signature):
 
     df = pd.read_csv(
         DATA_FILE,
@@ -401,8 +415,10 @@ def load_data():
     return df
 
 
+DATA_SIGNATURE = file_signature(DATA_FILE)
+
 try:
-    data = load_data()
+    data = load_data(DATA_SIGNATURE)
 
 except (FileNotFoundError, ValueError) as error:
 
@@ -423,20 +439,22 @@ except (FileNotFoundError, ValueError) as error:
 # RANKING FUNCTION
 # ============================================================
 
-@st.cache_data
-def rank_packages(df, score_column):
-
-    ranked = df.sort_values(
-        [score_column, "package_ndc"],
-        ascending=[False, True],
-    ).reset_index(drop=True)
-
-    ranked["risk_rank"] = np.arange(
-        1,
-        len(ranked) + 1,
+@st.cache_data(show_spinner=False)
+def rank_packages(source_signature, score_column):
+    return deterministic_rank_packages(
+        load_data(source_signature),
+        score_column,
     )
 
-    return ranked
+
+@st.cache_data(show_spinner=False)
+def evaluate_saved_models(source_signature, target_column):
+    return compare_rankings(
+        load_data(source_signature),
+        ["risk_score_v04", "risk_score_v05"],
+        target_column,
+        DEFAULT_REVIEW_BUDGETS,
+    )
 
 
 # ============================================================
@@ -506,10 +524,7 @@ st.sidebar.info(
     f"**${capacity * review_cost:,.0f}**. "
     "No real spending or purchases occur."
 )
-ranked = rank_packages(
-    data,
-    score_col,
-)
+ranked = rank_packages(DATA_SIGNATURE, score_col)
 
 selected = ranked.head(
     capacity
@@ -722,7 +737,7 @@ with tab_overview:
             }
         ),
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )
 
     st.divider()
@@ -773,7 +788,8 @@ with tab_overview:
 
     st.plotly_chart(
         fig_tiers,
-        use_container_width=True,
+        width="stretch",
+        alt="Bar chart showing the number of selected packages in each organizing priority tier.",
     )
 
 
@@ -859,7 +875,7 @@ with tab_drugs:
                 "priority_tier": "Priority Tier",
             }
         ),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         height=430,
     )
@@ -959,7 +975,8 @@ with tab_drugs:
 
         st.plotly_chart(
             fig_drugs,
-            use_container_width=True,
+            width="stretch",
+            alt="Horizontal bar chart showing selected package counts by generic drug and dosage form.",
         )
 
     st.divider()
@@ -1015,7 +1032,8 @@ with tab_drugs:
 
         st.plotly_chart(
             fig_labelers,
-            use_container_width=True,
+            width="stretch",
+            alt="Horizontal bar chart showing selected package counts by FDA labeler.",
         )
 
     st.caption(
@@ -1033,9 +1051,9 @@ with tab_models:
     st.subheader("Which ranking model performed better?")
     st.write(
         "A ranking model orders packages for closer review. We compare two "
-        "versions by looking backward at recorded FDA-linked events in 2025. "
-        "The question is: how many of those event-linked packages appear near "
-        "the top of each model's list?"
+        "versions against recorded FDA-linked event flags in the 2025 "
+        "dashboard dataset. The question is: how many of those event-linked "
+        "packages appear near the top of each model's list?"
     )
     st.write(
         "**v0.4 — simpler model:** Uses the earlier feature set and performs "
@@ -1064,48 +1082,100 @@ with tab_models:
         ),
     )
     target = target_options[target_name]
-    positives = int(data[target].sum())
-
-    evaluation = []
-    for version, column in [
-        ("v0.4", "risk_score_v04"),
-        ("v0.5", "risk_score_v05"),
-    ]:
-        ordered = rank_packages(data, column)
-        cumulative = ordered[target].cumsum()
-        for n in [100, 250, 500, 1000, 2500, 5000]:
-            captured = int(cumulative.iloc[n - 1])
-            evaluation.append({
-                "Model": version,
-                "Review Capacity": n,
-                "Events Captured": captured,
-                "Recall": captured / positives if positives else 0,
-            })
-
-    evaluation_df = pd.DataFrame(evaluation)
-    top500 = evaluation_df.loc[evaluation_df["Review Capacity"].eq(500)]
-    cap04 = int(top500.loc[top500["Model"].eq("v0.4"), "Events Captured"].iloc[0])
-    cap05 = int(top500.loc[top500["Model"].eq("v0.5"), "Events Captured"].iloc[0])
+    model_summary, evaluation_df = evaluate_saved_models(
+        DATA_SIGNATURE,
+        target,
+    )
+    labels = {"risk_score_v04": "v0.4", "risk_score_v05": "v0.5"}
+    model_summary["Model"] = model_summary["model"].map(labels)
+    evaluation_df["Model"] = evaluation_df["model"].map(labels)
+    positives = int(model_summary["positives"].iloc[0])
+    top500 = evaluation_df.loc[evaluation_df["review_budget"].eq(500)]
+    cap04 = int(top500.loc[top500["Model"].eq("v0.4"), "captured"].iloc[0])
+    cap05 = int(top500.loc[top500["Model"].eq("v0.5"), "captured"].iloc[0])
+    precision04 = float(top500.loc[top500["Model"].eq("v0.4"), "precision"].iloc[0])
+    precision05 = float(top500.loc[top500["Model"].eq("v0.5"), "precision"].iloc[0])
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("Packages with this recorded outcome", f"{positives:,}")
-    m2.metric("v0.4: found in first 500", f"{cap04} of {positives}")
-    m3.metric("v0.5: found in first 500", f"{cap05} of {positives}")
+    m1.metric("2025 dashboard event flags", f"{positives:,}", border=True)
+    m2.metric(
+        "v0.4: top-500 capture",
+        f"{cap04} of {positives}",
+        f"{precision04:.2%} precision",
+        border=True,
+    )
+    m3.metric(
+        "v0.5: top-500 capture",
+        f"{cap05} of {positives}",
+        f"{precision05:.2%} precision",
+        border=True,
+    )
 
     st.write(
         "**Example:** If a team could examine only 500 packages, the numbers "
-        "above show how many packages with the selected historical record "
-        "each model would have included. This does **not** measure prevented shortages."
+        "above show how many packages with the selected recorded event flag "
+        "each model would have included. This does **not** measure prevented "
+        "shortages or predict active availability."
+    )
+
+    st.caption(
+        "Precision@K is the share of reviewed packages with the selected "
+        "recorded event flag. Recall@K is the share of all such flags captured. "
+        "Random expectation is the count expected from selecting K packages "
+        "uniformly at random; it is not a competing model."
+    )
+
+    summary_display = model_summary[
+        ["Model", "positives", "positive_rate", "average_precision", "roc_auc"]
+    ].rename(
+        columns={
+            "positives": "Event flags",
+            "positive_rate": "Event rate",
+            "average_precision": "Average precision",
+            "roc_auc": "ROC-AUC",
+        }
+    )
+    st.dataframe(
+        summary_display,
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "Event rate": st.column_config.NumberColumn(format="%.4f%%"),
+            "Average precision": st.column_config.NumberColumn(format="%.6f"),
+            "ROC-AUC": st.column_config.NumberColumn(format="%.6f"),
+        },
     )
 
     fig_eval = px.line(
-        evaluation_df,
-        x="Review Capacity",
-        y="Events Captured",
+        evaluation_df.rename(
+            columns={
+                "review_budget": "Review budget",
+                "captured": "Event flags captured",
+            }
+        ),
+        x="Review budget",
+        y="Event flags captured",
         color="Model",
         markers=True,
-        title=f"Historical event records found at different review limits — {target_name}",
+        title=f"Recorded event flags found at different review limits — {target_name}",
         color_discrete_map={"v0.4": "#087F78", "v0.5": "#2D5B9A"},
+    )
+    random_line = evaluation_df.loc[
+        evaluation_df["Model"].eq("v0.4"),
+        ["review_budget", "random_expected"],
+    ].rename(
+        columns={
+            "review_budget": "Review budget",
+            "random_expected": "Event flags captured",
+        }
+    )
+    random_line["Model"] = "Random expectation"
+    fig_eval.add_scatter(
+        x=random_line["Review budget"],
+        y=random_line["Event flags captured"],
+        mode="lines+markers",
+        name="Random expectation",
+        line=dict(color="#64748B", dash="dash"),
     )
     fig_eval.update_layout(
         plot_bgcolor="white",
@@ -1113,24 +1183,53 @@ with tab_models:
         font=dict(color="#15263B"),
         margin=dict(l=20, r=20, t=60, b=20),
     )
-    st.plotly_chart(fig_eval, use_container_width=True)
+    st.plotly_chart(
+        fig_eval,
+        width="stretch",
+        alt="Line chart comparing recorded FDA event flags captured by each model and random expectation at review budgets.",
+    )
     st.caption(
         "How to read the chart: the horizontal axis is the number of packages "
         "a team could review. The vertical axis is how many packages with "
-        "the selected historical FDA record appear in those top-ranked packages. "
-        "At the same review limit, a higher line means more historical events found."
+        "the selected recorded FDA event flag appear in those top-ranked packages. "
+        "At the same review limit, a higher line means more recorded event flags found."
     )
 
     with st.expander("Show the detailed comparison table"):
-        detail = evaluation_df.rename(columns={
-            "Review Capacity": "Packages reviewed",
-            "Events Captured": "Historical events found",
-            "Recall": "Share of recorded events found",
-        })
-        st.dataframe(detail, use_container_width=True, hide_index=True)
+        detail = evaluation_df[
+            [
+                "Model",
+                "review_budget",
+                "captured",
+                "precision",
+                "recall",
+                "random_expected",
+                "lift_vs_random",
+            ]
+        ].rename(
+            columns={
+                "review_budget": "Packages reviewed",
+                "captured": "Event flags found",
+                "precision": "Precision@K",
+                "recall": "Recall@K",
+                "random_expected": "Random expected",
+                "lift_vs_random": "Lift vs random",
+            }
+        )
+        st.dataframe(
+            detail,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "Precision@K": st.column_config.NumberColumn(format="%.2f%%"),
+                "Recall@K": st.column_config.NumberColumn(format="%.2f%%"),
+                "Random expected": st.column_config.NumberColumn(format="%.2f"),
+                "Lift vs random": st.column_config.NumberColumn(format="%.2fx"),
+            },
+        )
         st.caption(
-            "'Share of recorded events found' means the fraction of flagged "
-            "2025 packages included in the selected top-N list—not a model probability."
+            "Precision@K and Recall@K describe this retrospective ranking "
+            "comparison; neither is a model probability."
         )
 
     st.warning(

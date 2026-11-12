@@ -55,6 +55,8 @@ In the **2025 retrospective development evaluation**, the simpler model performe
 | 2025 comparison | v0.4 | v0.5 |
 |---|---:|---:|
 | FDA-linked events among the top 500 ranked packages | **10 of 96** | **7 of 96** |
+| Precision@500 | **2.00%** | **1.40%** |
+| Recall@500 | **10.42%** | **7.29%** |
 | Precision–recall area under the curve (PR-AUC) | 0.003897 | 0.002858 |
 
 **What that means:** If a team could investigate only 500 of the 221,667 listed packages, the v0.4 ranking placed more packages with the recorded FDA event label in that review group. This is a historical research result, **not evidence that the model predicts real-world shortages reliably**.
@@ -126,6 +128,23 @@ python -m streamlit run pharmaopt_dashboard.py
 ```
 
 The included compressed dashboard dataset supports the public-facing dashboard. Fully rebuilding the research models requires additional source data and notebook workflows and is **not** presented here as a one-command reproduction.
+
+For development and validation, install the additional pinned dependency and
+run the focused regression suite:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+The dashboard caches the immutable compressed data read and refreshes it when
+the source file's size or modification timestamp changes. The deployment
+requirements intentionally exclude scikit-learn because the public app reads
+saved scores rather than retraining models.
+
+The exact modeling target, chronological split, timing checks, and remaining
+data-provenance risks are documented in
+[`docs/model-audit.md`](docs/model-audit.md).
 
 ## Important limitations
 
