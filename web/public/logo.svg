@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 88" role="img" aria-labelledby="title desc">
+  <title id="title">PharmaOpt</title>
+  <desc id="desc">A teal capsule with an analytical signal line beside the PharmaOpt wordmark.</desc>
+  <rect width="72" height="72" x="8" y="8" rx="22" fill="#087f78"/>
+  <path d="M25 25h18a12 12 0 0 1 0 24H25V25Z" fill="#fff"/>
+  <path d="M25 37h18" stroke="#087f78" stroke-width="4" stroke-linecap="round"/>
+  <path d="M22 58c7-8 12-8 18 0s11 8 18 0" fill="none" stroke="#70d2c2" stroke-width="4" stroke-linecap="round"/>
+  <text x="96" y="56" fill="#102a2a" font-family="Georgia, serif" font-size="40" letter-spacing="-1.5">PharmaOpt</text>
+</svg>
