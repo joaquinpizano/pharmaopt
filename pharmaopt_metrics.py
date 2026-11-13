@@ -354,6 +354,7 @@ def cluster_bootstrap_ranking(
         ),
         score_column,
     )
+    _validate_target(ranked, target_column)
     labels = pd.to_numeric(ranked[target_column], errors="raise").to_numpy(int)
     products = ranked["_product_ndc"].to_numpy()
     unique_products, inverse = np.unique(products, return_inverse=True)

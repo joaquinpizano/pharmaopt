@@ -59,7 +59,14 @@ No pre-period shortage, recall, utilization, or demand feature is present in the
 ## Product-cluster uncertainty
 
 Bootstrap seed: `20251112`; replicates per metric: `1000`.
-Products, rather than packages, are resampled as clusters. Intervals quantify resampling variability under this observed ranking and should not be interpreted as prospective validation.
+These intervals apply to the package-level ranking metrics. Products, rather than packages, are resampled as clusters so sibling packages are not treated as independent observations. The observed package order is held fixed while cluster multiplicities are resampled; this is not a refit or prospective validation.
+
+| Model | Recall@500 median | 95% interval | AP median | 95% interval |
+|---|---:|---:|---:|---:|
+| risk_score_v04 | 10.34% | 4.55%-17.48% | 0.004308 | 0.001887-0.008510 |
+| risk_score_v05 | 7.29% | 2.50%-12.77% | 0.003050 | 0.001467-0.006108 |
+
+The one malformed package identifier is retained in package-level ranking and bootstrap calculations as an `__unknown_product__` singleton cluster, but is excluded from product-level aggregates.
 
 ## v0.4 missed-event analysis
 

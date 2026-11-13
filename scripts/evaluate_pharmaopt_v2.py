@@ -204,9 +204,40 @@ def _write_report(
             "",
             f"Bootstrap seed: `{int(bootstrap_metrics['seed'].iloc[0])}`; "
             f"replicates per metric: `{int(bootstrap_metrics['replicates'].iloc[0])}`.",
-            "Products, rather than packages, are resampled as clusters. "
-            "Intervals quantify resampling variability under this observed "
-            "ranking and should not be interpreted as prospective validation.",
+            "These intervals apply to the package-level ranking metrics. "
+            "Products, rather than packages, are resampled as clusters so "
+            "sibling packages are not treated as independent observations. "
+            "The observed package order is held fixed while cluster "
+            "multiplicities are resampled; this is not a refit or prospective "
+            "validation.",
+            "",
+            "| Model | Recall@500 median | 95% interval | AP median | 95% interval |",
+            "|---|---:|---:|---:|---:|",
+        ]
+    )
+    for model in MODELS:
+        recall = bootstrap_metrics[
+            (bootstrap_metrics["model"].eq(model))
+            & (bootstrap_metrics["metric"].eq("recall"))
+            & (bootstrap_metrics["review_budget"].eq(500))
+        ].iloc[0]
+        average_precision = bootstrap_metrics[
+            (bootstrap_metrics["model"].eq(model))
+            & (bootstrap_metrics["metric"].eq("average_precision"))
+        ].iloc[0]
+        lines.append(
+            f"| {model} | {recall['estimate']:.2%} | "
+            f"{recall['lower_95']:.2%}-{recall['upper_95']:.2%} | "
+            f"{average_precision['estimate']:.6f} | "
+            f"{average_precision['lower_95']:.6f}-"
+            f"{average_precision['upper_95']:.6f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "The one malformed package identifier is retained in package-level "
+            "ranking and bootstrap calculations as an `__unknown_product__` "
+            "singleton cluster, but is excluded from product-level aggregates.",
             "",
             "## v0.4 missed-event analysis",
             "",
